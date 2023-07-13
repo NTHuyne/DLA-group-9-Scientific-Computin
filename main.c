@@ -10,21 +10,27 @@
 #define isCadidate 2
 #define defaultFood 1
 
-#define SIZE 500
-#define maxNVirus 10000
-#define w 1.5
-#define n 2
+#define SIZE 500 // size of the square board
+#define maxNVirus 10000 // maximum viruses we want
+#define w 1.5 // correction parameter w in (1;2) but in default we choose w = 1.5
+#define n 1 // exponential n (0.5;2) we change it for various test cases, n = 0, 1, 2
 
+
+// modeling for a virus point
 typedef struct Point
 {
     long x;
     long y;
 }Point;
 
+// create the board
 int Grid[SIZE][SIZE];
 int nVirus;
+
+// the food in the area
 double c[SIZE][SIZE];
 
+// read the first virus coordinates
 Point readFile(){
     FILE* input = fopen(inputFile, "r");
     Point newVirus;
@@ -34,6 +40,7 @@ Point readFile(){
     return newVirus;
 }
 
+// write the out put
 void writeFile(FILE* output){
     
     for(int i = 0; i < SIZE; i++){
@@ -45,6 +52,7 @@ void writeFile(FILE* output){
     
 }
 
+// write the first board
 void write(){
     for(int i = 0; i < SIZE; i++){
         for(int j = 0; j < SIZE; j++)
@@ -54,6 +62,7 @@ void write(){
     printf("\n");
 }
 
+// add a possible new virus
 void addCandidate(Point newVirus){
     int x = newVirus.x;
     int y = newVirus.y;
@@ -72,6 +81,7 @@ void addCandidate(Point newVirus){
 
 }
 
+// add virus
 void addVirus(Point newVirus){
     int x = newVirus.x;
     int y = newVirus.y;
@@ -81,6 +91,7 @@ void addVirus(Point newVirus){
     addCandidate(newVirus);
 } 
 
+// initilize everything
 void init(){
     nVirus = 0;
     for(int i = 0; i < SIZE; i++)
@@ -98,6 +109,7 @@ void init(){
     srand(time(NULL));
 }
 
+// using SOR iteration method to compute all c[][] matrix
 void SOR(){
     for(int i = 0; i < SIZE; i++)
         for(int j = 0; j < SIZE; j++){
@@ -109,6 +121,7 @@ void SOR(){
         }
 }
 
+// mark the spot to 0 
 void eat(){
     for(int i = 0; i < SIZE; i++)
         for(int j = 0; j < SIZE; j++)
@@ -116,7 +129,8 @@ void eat(){
                 c[i][j] = 0;
 }
 
-void RandomGrowth(Point candidate, double Pdeno){
+// calculate possibility of the virus growth
+void computeProbability(Point candidate, double Pdeno){
     int x = candidate.x;
     int y = candidate.y;
     double Pnum = pow(c[x][y], n);
@@ -128,6 +142,7 @@ void RandomGrowth(Point candidate, double Pdeno){
         addVirus(candidate);
 }
 
+// compute the growth of the virus
 void growth(){
     Point allCandidate[SIZE * SIZE];
     double Pdeno = 0;
@@ -142,10 +157,11 @@ void growth(){
             }
         }
     for(int i = 0; i < count; i++)
-        RandomGrowth(allCandidate[i], Pdeno);
+        computeProbability(allCandidate[i], Pdeno);
 }
 
-void update(){
+//loop
+void solve(){
     SOR();
     eat();
     growth();
@@ -155,7 +171,7 @@ int main(){
     init();
     FILE* output = fopen(outputFile, "w");
     while(nVirus < maxNVirus)
-        update();
+        solve();
     writeFile(output);
     fclose(output);
     return 0;
